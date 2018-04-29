@@ -1,6 +1,8 @@
 # YandexGallery
 Вступительное задание на школу мобильной разработки в Яндексе
 
+apk https://drive.google.com/open?id=14J_oZYQI9Vpu60fMT1zqFNVuMt_31pIR
+
 ![](https://capella.pics/c5387b1c-0d9b-45d5-9726-1161d0ab8f28)
 
 
