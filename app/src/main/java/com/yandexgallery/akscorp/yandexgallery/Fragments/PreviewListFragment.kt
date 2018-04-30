@@ -47,6 +47,7 @@ private const val RECONNECT_TIMEOUT_MILLIS = 2000L
 
 class PreviewListFragment : Fragment()
 {
+    var handler: Handler? = Handler()
     lateinit var snackbar: MessageSnackbar
     var images: MutableList<Image> = mutableListOf<Image>()
     
@@ -69,6 +70,12 @@ class PreviewListFragment : Fragment()
         
         if (savedInstanceState != null)
         {
+            if (!savedInstanceState.getBoolean("isDone"))
+            {
+                getPublicFolderContent()
+                return
+            }
+            handler = null
             images = savedInstanceState.get("images") as MutableList<Image>
             activity!!.progressBar2.visibility = View.INVISIBLE
             initPreviewGrid()
@@ -112,6 +119,7 @@ class PreviewListFragment : Fragment()
     {
         super.onSaveInstanceState(outState)
         outState.putSerializable("images", images as Serializable)
+        outState.putBoolean("isDone", (handler == null))
     }
     
     /**
@@ -126,9 +134,8 @@ class PreviewListFragment : Fragment()
                 
                 errorNotify()
                 
-                activity!!.runOnUiThread {
-                    val handler = Handler()
-                    handler.postDelayed({
+                activity?.runOnUiThread {
+                    handler?.postDelayed({
                         getPublicFolderContent()
                     }, RECONNECT_TIMEOUT_MILLIS)
                 }
@@ -141,12 +148,14 @@ class PreviewListFragment : Fragment()
                     onFailure(call, IOException(response.code().toString() + response.message()))
                     return
                 }
-                
                 val resp = response.body()?.string()
                 
                 images = getImagesList(resp!!)
                 
-                activity!!.runOnUiThread {
+                handler?.removeCallbacksAndMessages(null)
+                handler = null
+                
+                activity?.runOnUiThread {
                     snackbar.dismiss()
                     activity!!.progressBar2.visibility = View.INVISIBLE
                     
@@ -205,6 +214,8 @@ class PreviewListFragment : Fragment()
      */
     private fun errorNotify()
     {
+        if (activity == null)
+            return
         if (!Utilities.isInternetConnected(activity!!) && !snackbar.isShow())
             snackbar.show(activity!!.getString(R.string.offline_mod))
         else
